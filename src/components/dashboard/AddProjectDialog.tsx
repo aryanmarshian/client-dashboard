@@ -50,8 +50,27 @@ export const AddProjectDialog = ({
     setLoading(true);
 
     try {
-      // DB constraint expects lowercase stage values (see migrations). Normalize to lowercase.
-      const stageForDb = formData.stage?.toLowerCase();
+      // Normalize and validate stage to satisfy DB CHECK constraint
+      const normalizeStage = (s?: string) => {
+        if (!s) return undefined;
+        const t = s.trim().toLowerCase();
+        if (t.startsWith("arr")) return "arrival";
+        if (t.startsWith("quot")) return "quoted";
+        if (t.startsWith("won")) return "won";
+        return undefined;
+      };
+
+      const stageForDb = normalizeStage(formData.stage);
+      if (!stageForDb) {
+        toast({
+          title: "Invalid stage",
+          description:
+            "Stage must be one of: Arrival, Quoted, Won. Please select a valid stage.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
 
       const { error } = await supabase.from("projects").insert([
         {
@@ -147,7 +166,7 @@ export const AddProjectDialog = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="amount" className="text-sm text-foreground/90">
-                Amount ($) *
+                Amount (₹) *
               </Label>
               <Input
                 id="amount"

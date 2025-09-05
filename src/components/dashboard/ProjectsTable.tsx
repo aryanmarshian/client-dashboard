@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Edit, Trash2 } from "lucide-react";
 import { Project } from "../Dashboard";
+import { useAdmin } from "@/hooks/use-admin";
 import { EditProjectDialog } from "./EditProjectDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -42,12 +43,14 @@ export const ProjectsTable = ({
   const { toast } = useToast();
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: "USD",
+      currency: "INR",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    })
+      .format(amount)
+      .replace(/\u00A0/g, " ");
   };
 
   const formatDate = (dateString: string) => {
@@ -106,6 +109,8 @@ export const ProjectsTable = ({
     );
   }
 
+  const { isAdmin } = useAdmin();
+
   return (
     <>
       <div className="bg-card rounded-lg border">
@@ -152,21 +157,45 @@ export const ProjectsTable = ({
                   <TableCell>{formatDate(project.deadline)}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingProject(project)}
-                        title="Edit"
-                        className="p-2 bg-transparent hover:bg-white/5 text-foreground border-transparent"
-                      >
-                        <Edit className="h-4 w-4 text-foreground" />
-                      </Button>
+                      {isAdmin ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingProject(project)}
+                          title="Edit"
+                          className="p-2 bg-transparent hover:bg-white/5 text-foreground border-transparent"
+                        >
+                          <Edit className="h-4 w-4 text-foreground" />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Edit (admin only)"
+                          className="p-2 bg-transparent text-muted-foreground border-transparent cursor-not-allowed"
+                          disabled
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
 
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" title="Delete">
-                            <Trash2 className="h-4 w-4 text-foreground" />
-                          </Button>
+                          {isAdmin ? (
+                            <Button variant="outline" size="sm" title="Delete">
+                              <Trash2 className="h-4 w-4 text-foreground" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              title="Delete (admin only)"
+                              disabled
+                              className="text-muted-foreground"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>

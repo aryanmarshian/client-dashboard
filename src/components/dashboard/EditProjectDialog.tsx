@@ -69,7 +69,28 @@ export const EditProjectDialog = ({
     setLoading(true);
 
     try {
-      const { error } = await supabase
+      // Normalize and validate stage to satisfy DB CHECK constraint
+      const normalizeStage = (s?: string) => {
+        if (!s) return undefined;
+        const t = s.trim().toLowerCase();
+        if (t.startsWith("arr")) return "arrival";
+        if (t.startsWith("quot")) return "quoted";
+        if (t.startsWith("won")) return "won";
+        return undefined;
+      };
+
+      const normalizedStage = normalizeStage(formData.stage);
+      if (!normalizedStage) {
+        toast({
+          title: "Invalid stage",
+          description:
+            "Stage must be one of: Arrival, Quoted, Won. Please select a valid stage.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+      const { data, error } = await supabase
         .from("projects")
         .update({
           project_name: formData.project_name,
@@ -78,11 +99,14 @@ export const EditProjectDialog = ({
           deadline: formData.deadline,
           probability: parseInt(formData.probability),
           current_progress: parseInt(formData.current_progress),
-          stage: formData.stage?.toLowerCase(),
+          stage: normalizedStage,
           description: formData.description,
           project_owner: formData.project_owner,
         })
-        .eq("id", project.id);
+        .eq("id", project.id)
+        .select();
+
+      console.debug("Supabase update result:", { data, error });
 
       if (error) throw error;
 
@@ -91,6 +115,8 @@ export const EditProjectDialog = ({
         description: "Project updated successfully",
       });
 
+      // close dialog explicitly and notify parent to refresh
+      onOpenChange(false);
       onSuccess();
     } catch (error) {
       console.error("Error updating project:", error);
@@ -150,7 +176,7 @@ export const EditProjectDialog = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="amount" className="text-sm text-foreground/90">
-                Amount ($) *
+                Amount (₹) *
               </Label>
               <Input
                 id="amount"

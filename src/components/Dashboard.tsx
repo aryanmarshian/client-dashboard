@@ -22,6 +22,8 @@ export interface Project {
   updated_at: string;
 }
 
+import { AdminProvider } from "@/hooks/use-admin";
+
 export const Dashboard = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,22 +75,24 @@ export const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <DashboardHeader onAddProject={() => setIsAddDialogOpen(true)} />
-      <main className="container mx-auto px-6 py-8 space-y-4">
-        <StatsCards projects={projects} />
-        <ChartsSection projects={projects} />
-        <ProjectsTable
-          projects={projects}
-          loading={loading}
-          onUpdate={handleUpdateProject}
+    <AdminProvider>
+      <div className="min-h-screen">
+        <DashboardHeader onAddProject={() => setIsAddDialogOpen(true)} />
+        <main className="container mx-auto px-6 py-8 space-y-4">
+          <StatsCards projects={projects} />
+          <ChartsSection projects={projects} />
+          <ProjectsTable
+            projects={projects}
+            loading={loading}
+            onUpdate={handleUpdateProject}
+          />
+        </main>
+        <AddProjectDialog
+          open={isAddDialogOpen}
+          onOpenChange={setIsAddDialogOpen}
+          onSuccess={handleAddProject}
         />
-      </main>
-      <AddProjectDialog
-        open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        onSuccess={handleAddProject}
-      />
-    </div>
+      </div>
+    </AdminProvider>
   );
 };
