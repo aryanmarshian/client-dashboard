@@ -72,11 +72,23 @@ export const AddProjectDialog = ({
         return;
       }
 
+      // validate numeric amount >= 0
+      const parsedAmount = parseFloat(formData.amount as string);
+      if (isNaN(parsedAmount) || parsedAmount < 0) {
+        toast({
+          title: "Invalid amount",
+          description: "Amount must be a number greater than or equal to 0.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.from("projects").insert([
         {
           project_name: formData.project_name,
           client: formData.client,
-          amount: parseFloat(formData.amount),
+          amount: parsedAmount,
           deadline: formData.deadline,
           probability: parseInt(formData.probability),
           current_progress: parseInt(formData.current_progress),
@@ -166,12 +178,13 @@ export const AddProjectDialog = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="amount" className="text-sm text-foreground/90">
-                Amount (₹) *
+                Amount ($) *
               </Label>
               <Input
                 id="amount"
                 type="number"
                 step="0.01"
+                min={0}
                 value={formData.amount}
                 onChange={(e) =>
                   setFormData({ ...formData, amount: e.target.value })

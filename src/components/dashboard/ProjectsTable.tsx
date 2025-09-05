@@ -43,14 +43,12 @@ export const ProjectsTable = ({
   const { toast } = useToast();
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "INR",
+      currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    })
-      .format(amount)
-      .replace(/\u00A0/g, " ");
+    }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
@@ -111,6 +109,22 @@ export const ProjectsTable = ({
 
   const { isAdmin } = useAdmin();
 
+  // Sort projects: non-'won' projects by closest deadline first, then append 'won' projects
+  const sortedProjects = [...projects].sort((a, b) => {
+    const aWon = a.stage?.toLowerCase() === "won";
+    const bWon = b.stage?.toLowerCase() === "won";
+
+    if (aWon && !bWon) return 1; // a should come after b
+    if (!aWon && bWon) return -1; // a should come before b
+
+    // both won or both not won -> sort by deadline ascending (closest first)
+    const aTime = new Date(a.deadline).getTime();
+    const bTime = new Date(b.deadline).getTime();
+    const aVal = Number.isFinite(aTime) ? aTime : Number.POSITIVE_INFINITY;
+    const bVal = Number.isFinite(bTime) ? bTime : Number.POSITIVE_INFINITY;
+    return aVal - bVal;
+  });
+
   return (
     <>
       <div className="bg-card rounded-lg border">
@@ -130,7 +144,7 @@ export const ProjectsTable = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {projects.map((project) => (
+              {sortedProjects.map((project) => (
                 <TableRow key={project.id}>
                   <TableCell className="font-medium">
                     {project.project_name}

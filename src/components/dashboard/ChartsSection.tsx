@@ -91,14 +91,12 @@ export const ChartsSection = ({ projects }: ChartsSectionProps) => {
   });
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-IN", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "INR",
+      currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    })
-      .format(value)
-      .replace(/\u00A0/g, " ");
+    }).format(value);
   };
 
   return (
@@ -128,7 +126,13 @@ export const ChartsSection = ({ projects }: ChartsSectionProps) => {
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}
                 </Pie>
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={(value) => [String(value), "Count"]}
+                    />
+                  }
+                />
               </PieChart>
             </ChartContainer>
             <div className="flex flex-wrap gap-2 mt-4">

@@ -21,14 +21,12 @@ export const StatsCards = ({ projects }: StatsCardsProps) => {
   ).length;
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "INR",
+      currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    })
-      .format(amount)
-      .replace(/\u00A0/g, " ");
+    }).format(amount);
   };
 
   return (
