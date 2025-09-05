@@ -8,9 +8,9 @@ interface StatsCardsProps {
 
 export const StatsCards = ({ projects }: StatsCardsProps) => {
   const totalValue = projects.reduce((sum, project) => sum + project.amount, 0);
-  const activeProjects = projects.filter(
-    (p) => p.stage !== "Completed" && p.stage !== "Lost"
-  ).length;
+  const totalWonValue = projects
+    .filter((p) => (p.stage || "").toLowerCase() === "won")
+    .reduce((sum, project) => sum + project.amount, 0);
   const avgProbability =
     projects.length > 0
       ? projects.reduce((sum, project) => sum + project.probability, 0) /
@@ -47,11 +47,13 @@ export const StatsCards = ({ projects }: StatsCardsProps) => {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
+          <CardTitle className="text-sm font-medium">Total Value Won</CardTitle>
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{activeProjects}</div>
+          <div className="text-2xl font-bold">
+            {formatCurrency(totalWonValue)}
+          </div>
         </CardContent>
       </Card>
 
