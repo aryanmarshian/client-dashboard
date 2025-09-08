@@ -111,11 +111,6 @@ export const ChartsSection = ({ projects }: ChartsSectionProps) => {
       display: stageKey.charAt(0).toUpperCase() + stageKey.slice(1),
       count: stageProjects.length,
       value: stageProjects.reduce((sum, p) => sum + p.amount, 0),
-      avgProbability:
-        stageProjects.length > 0
-          ? stageProjects.reduce((sum, p) => sum + p.probability, 0) /
-            stageProjects.length
-          : 0,
     };
   });
 
@@ -303,12 +298,37 @@ export const ChartsSection = ({ projects }: ChartsSectionProps) => {
                     <div className="text-lg font-semibold text-foreground">
                       {formatCurrency(stage.value)}
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {stage.avgProbability.toFixed(0)}% avg prob.
-                    </div>
                   </div>
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Total Projects & Won Projects Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Projects</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-center">
+              {projects.length}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Won Projects</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-center">
+              {
+                projects.filter((p) => (p.stage || "").toLowerCase() === "won")
+                  .length
+              }
             </div>
           </CardContent>
         </Card>
@@ -332,11 +352,18 @@ function getClientColor(client: string): string {
   const colorPalette = [
     "hsla(210, 38%, 49%, 1.00)", // Muted Blue
     "hsl(120, 30%, 40%)", // Muted Green
-    "hsla(0, 41%, 47%, 1.00)", // Muted Red
+    //"hsla(0, 41%, 47%, 1.00)", // Muted Red
     "hsla(45, 40%, 50%, 1.00)", // Muted Yellow
-    "hsla(270, 53%, 50%, 1.00)", // Muted Purple
+    //"hsla(270, 53%, 50%, 1.00)", // Muted Purple
     "hsl(300, 30%, 40%)", // Muted Pink
     "hsla(180, 42%, 47%, 1.00)", // Muted Cyan
+    "hsla(200, 20%, 35%, 1.00)", // Slate Blue-Grey
+    "hsla(25, 35%, 45%, 1.00)", // Warm Brown
+    "hsla(160, 25%, 38%, 1.00)", // Teal Green
+    "hsla(340, 30%, 45%, 1.00)", // Deep Rose
+    "hsla(50, 25%, 55%, 1.00)", // Sand / Beige
+    "hsla(220, 25%, 25%, 1.00)", // Navy
+    "hsla(0, 0%, 40%, 1.00)", // Neutral Grey
   ];
 
   // Deterministic hash of string -> index

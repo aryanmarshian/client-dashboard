@@ -11,13 +11,9 @@ export const StatsCards = ({ projects }: StatsCardsProps) => {
   const totalWonValue = projects
     .filter((p) => (p.stage || "").toLowerCase() === "won")
     .reduce((sum, project) => sum + project.amount, 0);
-  const avgProbability =
-    projects.length > 0
-      ? projects.reduce((sum, project) => sum + project.probability, 0) /
-        projects.length
-      : 0;
-  const completedProjects = projects.filter(
-    (p) => p.stage === "Completed"
+  const totalProjects = projects.length;
+  const wonProjects = projects.filter(
+    (p) => (p.stage || "").toLowerCase() === "won"
   ).length;
 
   const formatCurrency = (amount: number) => {
@@ -31,7 +27,7 @@ export const StatsCards = ({ projects }: StatsCardsProps) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <Card>
+      <Card className="rounded-lg">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
             Total Pipeline Value
@@ -57,25 +53,21 @@ export const StatsCards = ({ projects }: StatsCardsProps) => {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Avg. Win Probability
-          </CardTitle>
+          <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
           <Target className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{avgProbability.toFixed(0)}%</div>
+          <div className="text-2xl font-bold">{totalProjects}</div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Completed Projects
-          </CardTitle>
+          <CardTitle className="text-sm font-medium">Won Projects</CardTitle>
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{completedProjects}</div>
+          <div className="text-2xl font-bold">{wonProjects}</div>
         </CardContent>
       </Card>
     </div>
