@@ -8,7 +8,7 @@
 @layer base {
   :root {
   /* Grayscale design tokens (saturation = 0) */
-  --background: 0 0% 6%;   /* almost black */
+  --background: 0 0% 100%;   /* almost black */
   --foreground: 0 0% 96%;  /* near white text */
 
   --card: 0 0% 12%;        /* card surface */
@@ -47,9 +47,13 @@
   --chart-5: 0 0% 24%;
   }
 
-  body {
-  @apply text-foreground min-h-screen bg-background;
-  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  html, body {
+    @apply text-foreground min-h-screen;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+    /* Remove background image and keep the background bare */
+    background-color: hsl(var(--background));
+    background-image: none;
   }
 }
 

@@ -127,27 +127,28 @@ export const ProjectsTable = ({
 
   return (
     <>
-      <div className="bg-card rounded-lg border">
+      <div className="card--fluid rounded-lg border">
         <div className="p-6">
           <h2 className="text-xl font-semibold mb-4">Projects</h2>
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Quote Number</TableHead>
                 <TableHead>Project Name</TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Stage</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Probability</TableHead>
                 <TableHead>Deadline</TableHead>
+                <TableHead>Received Date</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedProjects.map((project) => (
                 <TableRow key={project.id}>
+                  <TableCell>{project.quote_number ?? "—"}</TableCell>
                   <TableCell className="font-medium">
-                    {project.project_name}
+                    <div className="truncate">{project.project_name}</div>
                   </TableCell>
                   <TableCell>{project.client}</TableCell>
                   <TableCell>{formatCurrency(project.amount)}</TableCell>
@@ -156,19 +157,12 @@ export const ProjectsTable = ({
                       {project.stage}
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Progress
-                        value={project.current_progress}
-                        className="w-16"
-                      />
-                      <span className="text-sm text-muted-foreground">
-                        {project.current_progress}%
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{project.probability}%</TableCell>
                   <TableCell>{formatDate(project.deadline)}</TableCell>
+                  <TableCell>
+                    {project.received_date
+                      ? formatDate(project.received_date)
+                      : "—"}
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {isAdmin ? (

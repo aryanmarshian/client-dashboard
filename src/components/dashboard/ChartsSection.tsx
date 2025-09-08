@@ -8,6 +8,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  Legend,
   BarChart,
   Bar,
   XAxis,
@@ -40,17 +41,45 @@ export const ChartsSection = ({ projects }: ChartsSectionProps) => {
 
   // Client Mix Data
   const clientData = projects.reduce((acc, project) => {
-    acc[project.client] = (acc[project.client] || 0) + project.amount;
+    const clientName = project.client || "Unknown";
+    acc[clientName] = (acc[clientName] || 0) + (project.amount || 0);
     return acc;
   }, {} as Record<string, number>);
 
-  const clientChartData = Object.entries(clientData).map(
-    ([client, amount]) => ({
+  // Convert to array and sort descending by amount
+  const clientEntries = Object.entries(clientData)
+    .map(([client, amount]) => ({
       client,
       amount,
       fill: getClientColor(client),
-    })
-  );
+    }))
+    .sort((a, b) => b.amount - a.amount);
+
+  // Aggregate all clients that are 1% or less of the total into an "Other" bucket
+  const totalClientAmount = clientEntries.reduce((s, e) => s + e.amount, 0);
+  const threshold = totalClientAmount * 0.01; // 1%
+
+  let othersAmount = 0;
+  const majorClients: Array<{ client: string; amount: number; fill: string }> =
+    [];
+
+  for (const entry of clientEntries) {
+    if (totalClientAmount > 0 && entry.amount <= threshold) {
+      othersAmount += entry.amount;
+    } else {
+      majorClients.push(entry);
+    }
+  }
+
+  if (othersAmount > 0) {
+    majorClients.push({
+      client: "Other",
+      amount: othersAmount,
+      fill: "hsl(var(--muted))",
+    });
+  }
+
+  const clientChartData = majorClients;
 
   // Cumulative Amount Data (by month)
   const monthlyData = projects.reduce((acc, project) => {
@@ -103,101 +132,118 @@ export const ChartsSection = ({ projects }: ChartsSectionProps) => {
     <div className="mb-6 space-y-4">
       {/* Top Row: Stage Overview & Client Mix */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
+        <Card className="rounded-lg">
           <CardHeader>
             <CardTitle>Stage Overview</CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer
               config={{}}
-              className="mx-auto aspect-square max-h-[250px]"
+              className="mx-auto aspect-square max-h-[300px]"
             >
-              <PieChart>
-                <Pie
-                  data={stageChartData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="count"
-                >
-                  {stageChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(value) => [String(value), "Count"]}
+              {/* compute total for percent labels */}
+              {(() => {
+                const total = stageChartData.reduce((s, d) => s + d.count, 0);
+                const legendPayload = stageChartData.map((d) => ({
+                  value: d.stage.charAt(0).toUpperCase() + d.stage.slice(1),
+                  type: "square" as any,
+                  color: d.fill,
+                })) as any;
+
+                return (
+                  <PieChart>
+                    <Legend
+                      //verticalAlign="top"
+                      align="center"
+                      payload={legendPayload}
                     />
-                  }
-                />
-              </PieChart>
+                    <Pie
+                      data={stageChartData}
+                      cx="50%"
+                      cy="52%"
+                      innerRadius={Math.round(140 * 0.35)}
+                      outerRadius={Math.round(140 * 0.7)}
+                      paddingAngle={6}
+                      dataKey="count"
+                      stroke="#fff"
+                      strokeWidth={1}
+                      labelLine={true}
+                      label={({ name, percent, index }) => {
+                        const entry = stageChartData[index];
+                        return `${Math.round(percent * 100)}%`;
+                      }}
+                    >
+                      {stageChartData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.fill}
+                          stroke="#fff"
+                        />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                );
+              })()}
             </ChartContainer>
-            <div className="flex flex-wrap gap-2 mt-4">
-              {stageChartData.map((entry) => (
-                <div key={entry.stage} className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: entry.fill }}
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    {entry.stage.charAt(0).toUpperCase() + entry.stage.slice(1)}{" "}
-                    ({entry.count})
-                  </span>
-                </div>
-              ))}
-            </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-lg">
           <CardHeader>
             <CardTitle>Client Mix</CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer
               config={{}}
-              className="mx-auto aspect-square max-h-[250px]"
+              className="mx-auto aspect-square max-h-[500px]"
             >
-              <PieChart>
-                <Pie
-                  data={clientChartData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="amount"
-                >
-                  {clientChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(value) => [
-                        formatCurrency(value as number),
-                        "Value",
-                      ]}
+              {(() => {
+                const total = clientChartData.reduce((s, d) => s + d.amount, 0);
+                return (
+                  <PieChart>
+                    <Pie
+                      data={clientChartData}
+                      cx="50%"
+                      cy="52%"
+                      innerRadius={Math.round(0 * 0.2)}
+                      outerRadius={Math.round(180 * 0.75)}
+                      paddingAngle={4}
+                      dataKey="amount"
+                      nameKey="client"
+                      stroke="#fff"
+                      strokeWidth={1}
+                      labelLine={true}
+                      label={({ name, percent, index }) => {
+                        // hide the name for the aggregated "Other" slice, show only percent
+                        const entry = clientChartData[index];
+                        if (entry && entry.client === "Other") {
+                          return `${Math.round((percent || 0) * 100)}%`;
+                        }
+                        return `${name} ${Math.round((percent || 0) * 100)}%`;
+                      }}
+                    >
+                      {clientChartData.map((entry, index) => (
+                        <Cell
+                          key={`cell-client-${index}`}
+                          fill={entry.fill}
+                          stroke="#fff"
+                        />
+                      ))}
+                    </Pie>
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          formatter={(value) => [
+                            formatCurrency(value as number),
+                            "Value",
+                          ]}
+                        />
+                      }
                     />
-                  }
-                />
-              </PieChart>
+                  </PieChart>
+                );
+              })()}
             </ChartContainer>
-            <div className="flex flex-wrap gap-2 mt-4">
-              {clientChartData.slice(0, 5).map((entry) => (
-                <div key={entry.client} className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: entry.fill }}
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    {entry.client}
-                  </span>
-                </div>
-              ))}
-            </div>
           </CardContent>
         </Card>
       </div>
@@ -283,21 +329,22 @@ function getStageColor(stage: string): string {
 }
 
 function getClientColor(client: string): string {
-  const personTokens = [
-    "--person-1",
-    "--person-2",
-    "--person-3",
-    "--person-4",
-    "--person-5",
-    "--person-6",
-    "--person-7",
+  const colorPalette = [
+    "hsla(210, 38%, 49%, 1.00)", // Muted Blue
+    "hsl(120, 30%, 40%)", // Muted Green
+    "hsla(0, 41%, 47%, 1.00)", // Muted Red
+    "hsla(45, 40%, 50%, 1.00)", // Muted Yellow
+    "hsla(270, 53%, 50%, 1.00)", // Muted Purple
+    "hsl(300, 30%, 40%)", // Muted Pink
+    "hsla(180, 42%, 47%, 1.00)", // Muted Cyan
   ];
-  // deterministic hash of string -> index
+
+  // Deterministic hash of string -> index
   let h = 0;
   for (let i = 0; i < client.length; i++) {
     h = (h << 5) - h + client.charCodeAt(i);
     h |= 0;
   }
-  const idx = Math.abs(h) % personTokens.length;
-  return `hsl(var(${personTokens[idx]}))`;
+  const idx = Math.abs(h) % colorPalette.length;
+  return colorPalette[idx];
 }

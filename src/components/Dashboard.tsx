@@ -11,6 +11,8 @@ export interface Project {
   id: string;
   project_name: string;
   client: string;
+  quote_number?: string;
+  received_date?: string;
   amount: number;
   deadline: string;
   probability: number;
@@ -36,7 +38,7 @@ export const Dashboard = () => {
       const { data, error, status } = await supabase
         .from("projects")
         .select(
-          `id,project_name,client,amount,deadline,probability,current_progress,stage,description,project_owner,user_id,created_at,updated_at`
+          `id,project_name,client,quote_number,received_date,amount,deadline,probability,current_progress,stage,description,project_owner,user_id,created_at,updated_at`
         )
         .order("created_at", { ascending: false });
 
